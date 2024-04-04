@@ -67,7 +67,7 @@ const Login: React.FC = () => {
           objectFit='cover'
           h="100%"
           src={background}
-          alt='Dan Abramov'
+          alt='background'
         />
       </Center>
       <Flex flex="1" justify="center" direction="column" p={10}>
