@@ -15,3 +15,11 @@ code {
 .page {
   height: 100vh;
 }
+
+.chakra-input:focus-visible {
+  box-shadow: 0 0 0 1px white !important;
+}
+
+.chakra-input[aria-invalid=true] {
+  box-shadow: 0 0 0 1px #E53E3E !important;
+}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
-import Login from './Pages/Login';
-import Account from './Pages/Account';
+import Login from './Pages/Login/Login';
+import Account from './Pages/Account/Account';
 
 const App: React.FC = () => {
   return (
