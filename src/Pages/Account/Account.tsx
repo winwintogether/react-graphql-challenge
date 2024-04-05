@@ -1,68 +1,65 @@
-import React from 'react';
-import { useQuery, gql } from '@apollo/client';
-import {
-  Text,
-  Button,
-  VStack,
-  Spinner,
-  Flex,
-  Center,
-  Image,
-  Heading,
-} from '@chakra-ui/react';
-import { useHistory } from 'react-router-dom';
+import { useQuery } from "@apollo/client";
+import { Button, Spinner, Flex } from "@chakra-ui/react";
+import { useHistory } from "react-router-dom";
 import consulting from "../../assets/consulting.jpg";
-
-export const USER_QUERY = gql`
-  query user($id: ID!) {
-    user(id: $id) {
-      id
-      email
-      firstName
-      lastName
-    }
-  }
-`;
-
+import AccountDetailsCard from "../../components/AccountDetailsCard";
+import { USER_QUERY } from "../../graphql/queries/getProfile";
+import PageWrapper from "../../components/layouts/PageWrapper";
+import { isLoggedIn } from "../../helpers/auth";
 
 const Account = () => {
   const history = useHistory();
-  const userId = localStorage.getItem('userId');
+  const userId = localStorage.getItem("userId");
   const { loading, data } = useQuery(USER_QUERY, {
     variables: { id: userId },
+    skip: !isLoggedIn(),
   });
 
   const handleLogout = () => {
     localStorage.clear();
-    history.push('/login');
+    history.push("/login");
   };
 
-
-  if (loading) return (
-    <Flex color='white' className="page" align="center" justify="center">
-      <Spinner data-testid="spinner" color="blue.500" size="xl" />
-    </Flex>
-  );
+  if (loading)
+    return (
+      <Flex color="white" className="page" align="center" justify="center">
+        <Spinner data-testid="spinner" color="teal.300" size="xl" />
+      </Flex>
+    );
 
   return (
-    <Flex bg='blue.500' className="page" justify="center">
-      <Center w='70%' bg='blue.500'>
-        <Image
-          objectFit='cover'
-          h="100%"
-          src={consulting}
-          alt='background'
-        />
-      </Center>
-      <Flex flex="1" color="white" justify="space-between" direction="column" p={10}>
-          <VStack spacing={4} height="100%">
-            <Heading fontSize="xl">Account Details</Heading>
-            <Text>First Name: {data?.user?.firstName}</Text>
-            <Text>Last Name: {data?.user?.lastName}</Text>
-          </VStack>
-          <Button width='100%' colorScheme="red" onClick={handleLogout}>Logout</Button>
-      </Flex>
-    </Flex>
+    <PageWrapper
+      background={consulting}
+      contentWrapperProps={{
+        justify: "space-between",
+        w: { base: "100%", md: "60%" },
+        flex: {
+          base: "unset",
+          lg: "1",
+        },
+        mx: "auto",
+        px: {
+          base: 3,
+          sm: 5,
+          md: 8,
+          lg: 10,
+        },
+      }}
+      requireAuth
+    >
+      <AccountDetailsCard user={data?.user} />
+
+      <Button
+        width="100%"
+        colorScheme="red"
+        textTransform="uppercase"
+        fontWeight="bold"
+        fontSize="14px"
+        onClick={handleLogout}
+      >
+        Logout
+      </Button>
+    </PageWrapper>
   );
 };
 

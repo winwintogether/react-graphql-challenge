@@ -1,18 +1,23 @@
-import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
+import {
+  ApolloClient,
+  InMemoryCache,
+  HttpLink,
+  ApolloLink,
+} from "@apollo/client";
 
 const httpLink = new HttpLink({
-  uri: 'https://cms.trial-task.k8s.ext.fcse.io/graphql',
+  uri: process.env.REACT_APP_GQL_API_URL,
 });
 
 const authLink = new ApolloLink((operation, forward) => {
   // Retrieve the authentication token from local storage
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem("authToken");
 
   // Use the setContext method to set the HTTP headers.
   operation.setContext({
     headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    }
+      Authorization: token ? `Bearer ${token}` : "",
+    },
   });
 
   // Call the next link in the middleware chain.

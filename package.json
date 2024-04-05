@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.9.10",
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -11,9 +12,6 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.94",
-    "@types/react": "^18.2.74",
-    "@types/react-dom": "^18.2.23",
     "formik": "^2.4.5",
     "framer-motion": "^11.0.24",
     "graphql": "^16.8.1",
@@ -26,6 +24,9 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@types/node": "^20.12.4",
+    "@types/react": "^18.2.74",
+    "@types/react-dom": "^18.2.24",
     "@types/react-router-dom": "^5.1.9",
     "@types/redux-thunk": "^2.1.0"
   },

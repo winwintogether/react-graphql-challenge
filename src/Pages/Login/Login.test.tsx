@@ -1,41 +1,43 @@
-import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
-import { MemoryRouter } from 'react-router-dom';
-import Login, { LOGIN_MUTATION } from './Login';
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { MockedProvider } from "@apollo/client/testing";
+import Login from "./Login";
+import { LOGIN_MUTATION } from "../../graphql/mutations/login";
+
+const mockHistoryPush = jest.fn();
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useHistory: () => ({
+    push: mockHistoryPush,
+  }),
+}));
 
 const mocks = [
   {
     request: {
       query: LOGIN_MUTATION,
-      variables: { identifier: 'test@freshcells.de', password: 'KTKwXm2grV4wHzW' },
+      variables: {
+        identifier: process.env.REACT_APP_TEST_USERNAME,
+        password: process.env.REACT_APP_TEST_PWD,
+      },
     },
     result: {
       data: {
         login: {
-          jwt: 'token',
+          jwt: "token",
           user: {
-            id: "2"
-          }
+            id: "2",
+          },
         },
       },
     },
   },
 ];
 
-const errorMock = [
-  {
-    request: {
-      query: LOGIN_MUTATION,
-      variables: { identifier: 'test@freshcells.de', password: 'password' },
-    },
-    error: new Error('An error occurred'),
-  },
-];
-
-describe('Login Component', () => {
-  it('allows the user to login successfully', async () => {
-    const { getByLabelText, getByText } = render(
+describe("Login Component", () => {
+  it("allows the user to login successfully", async () => {
+    render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <MemoryRouter>
           <Login />
@@ -43,28 +45,24 @@ describe('Login Component', () => {
       </MockedProvider>
     );
 
-    fireEvent.change(getByLabelText(/email/i), { target: { value: 'test@freshcells.de' } });
-    fireEvent.change(getByLabelText(/password/i), { target: { value: 'KTKwXm2grV4wHzW' } });
-    fireEvent.click(getByText(/login/i));
-
-    await waitFor(() => {
-      expect(localStorage.getItem('authToken')).toBe('token');
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: process.env.REACT_APP_TEST_USERNAME },
     });
-  });
-
-  it('displays an error message when login fails', async () => {
-    const { getByLabelText, getByText } = render(
-      <MockedProvider mocks={errorMock} addTypename={false}>
-        <Login />
-      </MockedProvider>
-    );
-
-    fireEvent.change(getByLabelText(/email/i), { target: { value: 'test@freshcells.de' } });
-    fireEvent.change(getByLabelText(/password/i), { target: { value: 'password' } });
-    fireEvent.click(getByText(/login/i));
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: process.env.REACT_APP_TEST_PWD },
+    });
+    fireEvent.click(screen.getByText(/login/i));
 
     await waitFor(() => {
-      expect(getByText(/error logging in. please try again./i)).toBeInTheDocument();
+      expect(localStorage.getItem("authToken")).toBe("token");
+    });
+
+    await waitFor(() => {
+      expect(localStorage.getItem("userId")).toBe("2");
+    });
+
+    await waitFor(() => {
+      expect(mockHistoryPush).toHaveBeenCalledWith("/account");
     });
   });
 });

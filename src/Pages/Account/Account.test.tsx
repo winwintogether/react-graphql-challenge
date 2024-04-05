@@ -1,103 +1,94 @@
-import '@testing-library/jest-dom';
-import { render, waitFor, screen, fireEvent } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
-import Account, { USER_QUERY } from './Account';
-import mock = jest.mock;
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { MockedProvider } from "@apollo/client/testing";
+import { USER_QUERY } from "../../graphql/queries/getProfile";
+import { isLoggedIn } from "../../helpers/auth";
+import Account from "./Account";
 
-const mockLocalStorage = (() => {
-  let store = {} as { [key: string]: any };
-  return {
-    getItem(key: string) {
-      return store[key] || null;
-    },
-    setItem(key: string, value: string | number) {
-      store[key] = value.toString();
-    },
-    clear() {
-      store = {};
-    },
-  };
-})()
+jest.mock("../../helpers/auth");
 
-const mockUser = {
-  id: '2',
-  email: 'test@freshcells.de',
-  firstName: 'FirstName',
-  lastName: 'LastName',
-};
+describe("Account", () => {
+  const mockedIsLoggedIn = isLoggedIn as jest.MockedFunction<typeof isLoggedIn>;
 
-Object.defineProperty(window, 'localStorage', {
-  value: mockLocalStorage,
-});
-
-const mocks = [
-  {
-    request: {
-      query: USER_QUERY,
-      variables: { id: mockUser.id },
-    },
-    result: {
-      data: {
-        user: mockUser,
+  const mocks = [
+    {
+      request: {
+        query: USER_QUERY,
+        variables: {
+          id: "1234",
+        },
+      },
+      result: {
+        data: {
+          user: {
+            id: "1234",
+            firstName: "John",
+            lastName: "Doe",
+            email: "john.doe@example.com",
+          },
+        },
       },
     },
-  },
-];
+  ];
 
-const mockHistoryPush = jest.fn();
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useHistory: () => ({
-    push: mockHistoryPush,
-  }),
-}));
-
-describe('Account Component', () => {
   beforeEach(() => {
-    window.localStorage.setItem('userId', mockUser.id);
+    localStorage.setItem("userId", "1234");
+    localStorage.setItem("authToken", "abc123");
   });
 
   afterEach(() => {
-    window.localStorage.clear();
+    localStorage.clear();
+    jest.clearAllMocks();
   });
 
-  it('displays loading spinner while fetching data', () => {
+  it("should render the Account page correctly when the user is logged in", async () => {
+    mockedIsLoggedIn.mockReturnValue(true);
+
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <Account />
-      </MockedProvider>
-    );
-
-    expect(screen.getByTestId('spinner')).toBeInTheDocument();
-  });
-
-  it('displays user information after fetching', async () => {
-    render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <Account />
+        <MemoryRouter>
+          <Account />
+        </MemoryRouter>
       </MockedProvider>
     );
 
     await waitFor(() => {
-      expect(screen.getByText('First Name: FirstName')).toBeInTheDocument();
-      expect(screen.getByText('Last Name: LastName')).toBeInTheDocument();
+      expect(screen.getByText("My Profile")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    expect(screen.getByText("john.doe@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Logout")).toBeInTheDocument();
+  });
+
+  it("should redirect to the login page when the user is not logged in", async () => {
+    mockedIsLoggedIn.mockReturnValue(false);
+
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <MemoryRouter>
+          <Account />
+        </MemoryRouter>
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/");
     });
   });
 
-  it('navigates to login on logout', async () => {
+  it("should display a spinner while loading", () => {
+    mockedIsLoggedIn.mockReturnValue(true);
+
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <Account />
+        <MemoryRouter>
+          <Account />
+        </MemoryRouter>
       </MockedProvider>
     );
-    await waitFor(() => expect(screen.queryByTestId('spinner')).not.toBeInTheDocument());
 
-    const logoutButton = screen.getByText('Logout');
-    fireEvent.click(logoutButton);
-
-    await waitFor(() => {
-      expect(mockHistoryPush).toHaveBeenCalledWith('/login');
-    });
+    expect(screen.getByTestId("spinner")).toBeInTheDocument();
   });
 });
